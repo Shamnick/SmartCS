@@ -2,6 +2,8 @@
 
 基于 Spring AI + LangChain4j + DeepSeek + Milvus 的企业智能客服系统，通过 RAG（检索增强生成）技术实现企业知识的自动化、精准化问答。
 
+<img width="3200" height="1756" alt="image" src="https://github.com/user-attachments/assets/321b083b-7e1d-4d13-b579-f7213a34bbdd" />
+
 ## 系统架构
 
 ```
