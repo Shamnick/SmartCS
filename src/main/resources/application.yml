@@ -1,0 +1,84 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: smart-customer-service
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+# DeepSeek模型配置 (LangChain4j)
+deepseek:
+  api-key: ${DEEPSEEK_API_KEY:}
+  base-url: https://api.deepseek.com/v1
+  model: deepseek-chat
+  embedding-model: ${DEEPSEEK_EMBEDDING_MODEL:}
+  temperature: 0.7
+  max-tokens: 2048
+  timeout: 60
+
+# Milvus向量数据库配置
+milvus:
+  host: localhost
+  port: 19530
+  collection-name: knowledge_base
+  dimension: 1536
+  index-type: IVF_FLAT
+  metric-type: COSINE
+  nlist: 1024
+  nprobe: 16
+  top-k: 5
+
+# RAG配置
+rag:
+  chunk-size: 500
+  chunk-overlap: 100
+  max-results: 5
+  similarity-threshold: 0.7
+
+# 缓存配置
+cache:
+  caffeine:
+    spec: maximumSize=1000,expireAfterWrite=30m
+  redis:
+    ttl: 3600
+
+# 并发控制配置
+concurrency:
+  core-pool-size: 10
+  max-pool-size: 50
+  queue-capacity: 200
+  thread-name-prefix: smartcs-
+
+# 日志配置
+logging:
+  level:
+    com.smartcs: INFO
+    dev.langchain4j: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Actuator监控
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never

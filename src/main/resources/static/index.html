@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f0f2f5">
+    <title>SmartCS - 企业智能客服系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <a class="skip-link" href="#appMain">跳转到主要内容</a>
+    <div class="app-bg" aria-hidden="true">
+        <div class="bg-orb orb-one"></div>
+        <div class="bg-orb orb-two"></div>
+        <div class="bg-orb orb-three"></div>
+    </div>
+    <div class="app">
+
+        <!-- ========== Left Sidebar ========== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
+                        <rect x="3" y="11" width="18" height="10" rx="2"/>
+                        <circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
+                        <circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>SmartCS</h1>
+                    <span>企业智能客服</span>
+                </div>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn-new-chat" onclick="newSession()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    新建对话
+                </button>
+            </div>
+
+            <div class="session-search">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                </svg>
+                <input type="text" id="sessionSearchInput" name="sessionSearch" autocomplete="off" inputmode="search" placeholder="搜索历史会话…" aria-label="搜索历史会话" oninput="updateSessionSearch(this.value)">
+            </div>
+
+            <div class="session-view-switch" role="tablist" aria-label="会话视图切换">
+                <button type="button" class="session-view-btn active" role="tab" aria-selected="true" tabindex="0" data-session-view="all" onclick="setSessionView('all')">全部</button>
+                <button type="button" class="session-view-btn" role="tab" aria-selected="false" tabindex="-1" data-session-view="pinned" onclick="setSessionView('pinned')">收藏</button>
+                <button type="button" class="session-view-btn" role="tab" aria-selected="false" tabindex="-1" data-session-view="archived" onclick="setSessionView('archived')">归档</button>
+            </div>
+
+            <div class="session-list-header">历史对话</div>
+            <div class="session-list-meta" id="sessionListMeta">显示全部会话</div>
+            <div class="session-list" id="sessionList" aria-live="polite" aria-busy="false">
+                <div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">暂无对话记录</div>
+            </div>
+            <div class="sr-only" id="sessionListStatus" aria-live="polite"></div>
+
+            <nav class="sidebar-nav" aria-label="主功能导航">
+                <button type="button" class="nav-item active" data-page="chat" aria-controls="page-chat" aria-current="page" onclick="switchPage('chat')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    智能对话
+                </button>
+                <button type="button" class="nav-item" data-page="knowledge" aria-controls="page-knowledge" onclick="switchPage('knowledge')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                    </svg>
+                    知识库
+                </button>
+                <button type="button" class="nav-item" data-page="monitor" aria-controls="page-monitor" onclick="switchPage('monitor')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                    系统监控
+                </button>
+            </nav>
+        </aside>
+
+        <!-- ========== Main ========== -->
+        <main class="main" id="appMain">
+            <div class="sr-only" id="appPageStatus" aria-live="polite"></div>
+
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button type="button" class="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="切换侧边栏">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <span class="header-title" id="headerTitle">智能对话</span>
+                </div>
+                <div class="header-right">
+                    <span class="online-dot"></span>
+                    <button class="header-btn active" id="toggleRagBtn" onclick="toggleCapability('rag')">RAG</button>
+                    <button class="header-btn active" id="toggleFcBtn" onclick="toggleCapability('fc')">Function</button>
+                    <button class="header-btn" onclick="showUploadModal()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        上传文档
+                    </button>
+                    <button class="header-btn" onclick="exportChat()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        导出
+                    </button>
+                    <button class="header-btn" onclick="openCommandPalette()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </svg>
+                        快捷操作
+                        <span class="header-kbd">Ctrl K</span>
+                    </button>
+                    <button type="button" class="header-btn theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="切换主题">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <div class="workspace-strip">
+                <div class="workspace-hero">
+                    <div class="workspace-hero-copy">
+                        <div class="workspace-badge-row">
+                            <span class="workspace-badge" id="workspaceModeBadge">智能工作台</span>
+                            <span class="workspace-live-time" id="workspaceLiveTime">--:--:--</span>
+                        </div>
+                        <h3 id="workspaceTitle">欢迎使用 SmartCS 企业工作台</h3>
+                        <p id="workspaceSubtitle">在一个界面中完成对话协同、知识沉淀与系统观测，提升客服与运营效率。</p>
+                    </div>
+                    <div class="workspace-hero-actions">
+                        <button class="btn btn-ghost" onclick="openCommandPalette()">快捷面板</button>
+                        <button class="btn btn-primary" onclick="showUploadModal()">新增知识</button>
+                    </div>
+                </div>
+                <div class="workspace-stats">
+                    <div class="workspace-stat-card">
+                        <span class="workspace-stat-label">活跃会话</span>
+                        <strong class="workspace-stat-value" id="workspaceSessions">0</strong>
+                    </div>
+                    <div class="workspace-stat-card">
+                        <span class="workspace-stat-label">知识文档</span>
+                        <strong class="workspace-stat-value" id="workspaceDocs">0</strong>
+                    </div>
+                    <div class="workspace-stat-card">
+                        <span class="workspace-stat-label">最近响应</span>
+                        <strong class="workspace-stat-value" id="workspaceLatency">--</strong>
+                    </div>
+                    <div class="workspace-stat-card">
+                        <span class="workspace-stat-label">活跃能力</span>
+                        <strong class="workspace-stat-value workspace-capability-text" id="workspaceCapabilities">RAG · Function</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-alert-region" id="appAlertRegion" aria-live="polite" hidden></div>
+
+            <!-- ===== Chat Page ===== -->
+            <div class="page active" id="page-chat">
+                <div class="chat-container">
+                    <div class="messages-area" id="messagesArea">
+                        <div class="welcome-screen" id="welcomeScreen">
+                            <div class="welcome-logo">
+                                <svg width="40" height="40" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
+                                    <rect x="3" y="11" width="18" height="10" rx="2"/>
+                                    <circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
+                                    <circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/>
+                                </svg>
+                            </div>
+                            <h2>企业智能客服助手</h2>
+                            <p>基于 DeepSeek 大模型 + RAG 检索增强生成技术，为您提供精准的企业知识问答与业务查询服务</p>
+                            <div class="welcome-cards">
+                                <button type="button" class="welcome-card" onclick="quickAsk('请介绍一下你能为我提供哪些服务？')" aria-label="了解服务能力">
+                                    <span class="welcome-card-icon blue" aria-hidden="true">💡</span>
+                                    <span class="welcome-card-title">了解服务能力</span>
+                                    <span class="welcome-card-desc">查看系统支持的全部功能</span>
+                                </button>
+                                <button type="button" class="welcome-card" onclick="quickAsk('帮我查询订单 ORD20240101 的状态')" aria-label="订单状态查询">
+                                    <span class="welcome-card-icon green" aria-hidden="true">📦</span>
+                                    <span class="welcome-card-title">订单状态查询</span>
+                                    <span class="welcome-card-desc">查询订单物流与配送信息</span>
+                                </button>
+                                <button type="button" class="welcome-card" onclick="quickAsk('请问退换货的具体政策和流程是什么？')" aria-label="售后政策咨询">
+                                    <span class="welcome-card-icon orange" aria-hidden="true">📋</span>
+                                    <span class="welcome-card-title">售后政策咨询</span>
+                                    <span class="welcome-card-desc">了解退换货规则与流程</span>
+                                </button>
+                                <button type="button" class="welcome-card" onclick="quickAsk('有什么热门产品推荐吗？')" aria-label="产品推荐">
+                                    <span class="welcome-card-icon purple" aria-hidden="true">🛒</span>
+                                    <span class="welcome-card-title">产品推荐</span>
+                                    <span class="welcome-card-desc">获取热门产品信息与推荐</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-area">
+                        <div class="composer-shortcuts">
+                            <button class="composer-chip" onclick="applyPromptChip('请总结当前会话中的关键信息和下一步建议')">会话总结</button>
+                            <button class="composer-chip" onclick="applyPromptChip('请帮我生成一条更专业的客户回复话术')">生成话术</button>
+                            <button class="composer-chip" onclick="applyPromptChip('请将这段内容整理成客服 SOP 处理步骤')">SOP 生成</button>
+                            <button class="composer-chip" onclick="applyPromptChip('请从知识库中提炼要点并给出风险提示')">知识提炼</button>
+                        </div>
+                        <div class="input-box">
+                            <textarea id="chatInput" name="chatInput" aria-label="聊天输入框" autocomplete="off" placeholder="输入您的问题，Enter 发送，Shift+Enter 换行…" rows="1"></textarea>
+                            <div class="input-tools">
+                                <button type="button" class="input-tool-btn" onclick="clearDraft()" title="清空草稿" aria-label="清空草稿">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                                <button type="button" class="input-tool-btn" onclick="openCommandPalette()" title="打开快捷面板" aria-label="打开快捷面板">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"></path>
+                                    </svg>
+                                </button>
+                                <button type="button" class="btn-send" id="btnSend" onclick="sendMessage()" aria-label="发送消息">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <line x1="22" y1="2" x2="11" y2="13"/>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="composer-meta">
+                            <div class="composer-status" role="status" aria-live="polite"><span class="online-dot"></span><span id="composerStatus">已就绪，可直接提问或使用快捷指令</span></div>
+                            <div class="composer-counter"><span id="draftCount">0 字</span><span id="draftHint">支持 Enter 发送 / Ctrl+K 快捷操作</span></div>
+                        </div>
+                        <div class="input-hint">
+                            SmartCS 基于 DeepSeek + RAG 技术驱动 · 回答仅供参考
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Knowledge Page ===== -->
+            <div class="page" id="page-knowledge">
+                <div class="kb-page">
+                    <div class="kb-header">
+                        <h2>知识库管理</h2>
+                        <button class="btn btn-primary" onclick="showUploadModal()">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            上传文档
+                        </button>
+                    </div>
+
+                    <div class="kb-stats">
+                        <div class="kb-stat-card">
+                            <div class="stat-icon blue">📄</div>
+                            <div class="stat-number" id="kbTotalDocs">0</div>
+                            <div class="stat-label">总文档数</div>
+                        </div>
+                        <div class="kb-stat-card">
+                            <div class="stat-icon green">✅</div>
+                            <div class="stat-number" id="kbCompleted">0</div>
+                            <div class="stat-label">已就绪</div>
+                        </div>
+                        <div class="kb-stat-card">
+                            <div class="stat-icon orange">⏳</div>
+                            <div class="stat-number" id="kbProcessing">0</div>
+                            <div class="stat-label">处理中</div>
+                        </div>
+                        <div class="kb-stat-card">
+                            <div class="stat-icon purple">🧩</div>
+                            <div class="stat-number" id="kbTotalChunks">0</div>
+                            <div class="stat-label">向量片段</div>
+                        </div>
+                    </div>
+
+                    <div class="kb-toolbar">
+                        <div class="kb-toolbar-left">
+                            <div class="kb-search-box">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.3-4.3"></path>
+                                </svg>
+                                <input type="text" id="kbSearchInput" name="kbSearch" aria-label="搜索知识文档" autocomplete="off" inputmode="search" placeholder="搜索文档名称或分类…" oninput="applyKnowledgeFilters()">
+                            </div>
+                            <select id="kbStatusFilter" name="kbStatusFilter" aria-label="按文档状态筛选" onchange="applyKnowledgeFilters()">
+                                <option value="all">全部状态</option>
+                                <option value="COMPLETED">已就绪</option>
+                                <option value="PROCESSING">处理中</option>
+                                <option value="FAILED">失败</option>
+                            </select>
+                            <select id="kbSortOrder" name="kbSortOrder" aria-label="知识文档排序方式" onchange="applyKnowledgeFilters()">
+                                <option value="updated_desc">最近更新</option>
+                                <option value="created_desc">最近创建</option>
+                                <option value="chunks_desc">分片数优先</option>
+                                <option value="name_asc">名称 A-Z</option>
+                            </select>
+                        </div>
+                        <div class="kb-toolbar-right">
+                            <span class="kb-toolbar-summary" id="kbFilterSummary">显示全部文档</span>
+                            <span class="kb-toolbar-summary" id="kbSelectionSummary">未选择文档</span>
+                            <button class="btn btn-ghost" onclick="clearKnowledgeFilters()">重置筛选</button>
+                            <button type="button" class="btn btn-ghost" id="kbBulkDeleteBtn" onclick="requestDeleteSelectedDocs()" disabled>删除选中</button>
+                        </div>
+                    </div>
+                    <div class="sr-only" id="kbWorkspaceStatus" aria-live="polite"></div>
+
+                    <div class="kb-workspace">
+                        <div class="kb-table-wrap" id="kbTableRegion" aria-live="polite" aria-busy="false">
+                            <div class="kb-table-header">
+                                <h3>文档列表</h3>
+                                <span class="kb-table-meta" id="kbTableMeta">按最近更新排序</span>
+                            </div>
+                            <table class="kb-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:44px"><input type="checkbox" id="kbSelectAll" class="kb-row-check" aria-label="全选知识文档" onchange="toggleSelectAllDocs(this.checked)"></th>
+                                        <th>文档名称</th>
+                                        <th>分类</th>
+                                        <th>状态</th>
+                                        <th>分片数</th>
+                                        <th>创建时间</th>
+                                        <th style="width:60px">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kbTableBody">
+                                    <tr><td colspan="7" class="kb-empty">暂无知识文档</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <aside class="kb-detail-panel" id="kbDetailPanel" aria-live="polite">
+                            <div class="kb-detail-empty" id="kbDetailEmpty">
+                                <strong>选择一条知识文档</strong>
+                                <p>在左侧列表中查看详情、复制内容预览，或直接进行删除治理。</p>
+                            </div>
+                            <div class="kb-detail-content" id="kbDetailContent" hidden>
+                                <div class="kb-detail-head">
+                                    <div>
+                                        <span class="kb-detail-eyebrow">文档详情</span>
+                                        <h3 id="kbDetailTitle">-</h3>
+                                    </div>
+                                    <button type="button" class="btn btn-ghost kb-detail-close" onclick="closeKnowledgeDetail()">关闭</button>
+                                </div>
+                                <div class="kb-detail-topline">
+                                    <span class="status-badge pending" id="kbDetailStatus">PENDING</span>
+                                    <span class="kb-detail-id" id="kbDetailId">-</span>
+                                </div>
+                                <div class="kb-detail-grid">
+                                    <div class="kb-detail-card"><span>分类</span><strong id="kbDetailCategory">-</strong></div>
+                                    <div class="kb-detail-card"><span>分片数</span><strong id="kbDetailChunks">0</strong></div>
+                                    <div class="kb-detail-card"><span>文件类型</span><strong id="kbDetailFileType">-</strong></div>
+                                    <div class="kb-detail-card"><span>更新时间</span><strong id="kbDetailUpdateTime">-</strong></div>
+                                </div>
+                                <div class="kb-detail-section">
+                                    <h4>文档说明</h4>
+                                    <p id="kbDetailDescription">暂无文档说明</p>
+                                </div>
+                                <div class="kb-detail-section">
+                                    <h4>内容预览</h4>
+                                    <div class="kb-detail-preview" id="kbDetailPreview">暂无内容预览</div>
+                                </div>
+                                <div class="kb-detail-actions">
+                                    <button type="button" class="btn btn-ghost" onclick="copyKnowledgePreview()">复制预览</button>
+                                    <button type="button" class="btn btn-ghost" onclick="requestDeleteActiveDoc()">删除文档</button>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Monitor Page ===== -->
+            <div class="page" id="page-monitor">
+                <div class="monitor-page">
+                    <h2>系统监控</h2>
+                    <div class="sr-only" id="monitorWorkspaceStatus" aria-live="polite"></div>
+
+                    <div class="monitor-grid">
+                        <!-- System Info -->
+                        <div class="monitor-card">
+                            <h4>系统概览</h4>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">活跃会话</span>
+                                <span class="monitor-metric-value" id="monSessions">0</span>
+                            </div>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">知识文档</span>
+                                <span class="monitor-metric-value" id="monDocs">0</span>
+                            </div>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">向量片段</span>
+                                <span class="monitor-metric-value" id="monChunks">0</span>
+                            </div>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">已就绪</span>
+                                <span class="monitor-metric-value" style="color:var(--success)" id="monCompleted">0</span>
+                            </div>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">处理失败</span>
+                                <span class="monitor-metric-value" style="color:var(--danger)" id="monFailed">0</span>
+                            </div>
+                        </div>
+
+                        <!-- JVM -->
+                        <div class="monitor-card">
+                            <h4>JVM 内存</h4>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">最大内存</span>
+                                <span class="monitor-metric-value" id="monMaxMem">-</span>
+                            </div>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">已使用</span>
+                                <span class="monitor-metric-value" id="monUsedMem">-</span>
+                            </div>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">空闲内存</span>
+                                <span class="monitor-metric-value" id="monFreeMem">-</span>
+                            </div>
+                            <div class="monitor-metric">
+                                <span class="monitor-metric-label">CPU 核心</span>
+                                <span class="monitor-metric-value" id="monCPU">-</span>
+                            </div>
+                            <div style="padding-top:8px">
+                                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px">
+                                    <span>内存使用率</span>
+                                    <span id="memPct">0%</span>
+                                </div>
+                                <div class="monitor-bar-track">
+                                    <div class="monitor-bar-fill blue" id="memBar" style="width:0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance -->
+                        <div class="monitor-card">
+                            <div class="monitor-card-head">
+                                <h4>接口性能</h4>
+                                <div class="monitor-toolbar">
+                                    <div class="monitor-search-box">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <path d="m21 21-4.3-4.3"></path>
+                                        </svg>
+                                        <input type="text" id="perfMetricSearch" placeholder="搜索接口…" aria-label="搜索性能接口" oninput="applyMonitorMetricFilters()">
+                                    </div>
+                                    <select id="perfMetricSort" class="activity-filter" aria-label="性能指标排序" onchange="applyMonitorMetricFilters()">
+                                        <option value="avg_desc">平均耗时</option>
+                                        <option value="max_desc">峰值耗时</option>
+                                        <option value="calls_desc">调用次数</option>
+                                        <option value="name_asc">接口名称</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="monitor-subtitle" id="perfMetricSummary">按平均耗时排序</div>
+                            <div id="perfMetrics" aria-live="polite" aria-busy="false">
+                                <div style="padding:16px;color:var(--text-muted);font-size:13px">暂无性能数据</div>
+                            </div>
+                        </div>
+
+                        <div class="monitor-card">
+                            <div class="monitor-card-head">
+                                <h4>健康评分</h4>
+                                <span class="health-badge" id="healthBadge">稳定</span>
+                            </div>
+                            <div class="health-score"><span id="healthScore">100</span><small>/100</small></div>
+                            <div class="health-summary" id="healthSummary">系统状态稳定，适合继续演示、联调与知识构建。</div>
+                            <div class="monitor-bar-track">
+                                <div class="monitor-bar-fill blue" id="healthBar" style="width:100%"></div>
+                            </div>
+                        </div>
+
+                        <div class="monitor-card activity-card">
+                            <div class="monitor-card-head">
+                                <h4>实时活动流</h4>
+                                <div class="activity-toolbar">
+                                    <select id="monitorRefreshInterval" class="activity-filter" aria-label="自动刷新间隔" onchange="setMonitorRefreshInterval(this.value)">
+                                        <option value="15">15s</option>
+                                        <option value="30">30s</option>
+                                        <option value="60">60s</option>
+                                    </select>
+                                    <select id="activityToneFilter" class="activity-filter" aria-label="筛选活动类型" onchange="updateActivityFilter(this.value)">
+                                        <option value="all">全部活动</option>
+                                        <option value="info">仅信息</option>
+                                        <option value="success">仅成功</option>
+                                        <option value="warning">仅预警</option>
+                                    </select>
+                                    <button type="button" class="btn btn-ghost monitor-toggle-btn" onclick="requestClearActivityFeed()">清空活动</button>
+                                    <button type="button" class="btn btn-ghost monitor-toggle-btn" onclick="toggleMonitorAutoRefresh()">
+                                        <span id="monitorAutoRefreshLabel">自动刷新 ON</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="monitor-subtitle" id="monitorRefreshHint">下次自动刷新：15s</div>
+                            <div class="monitor-subtitle monitor-subtitle-compact" id="activityFeedMeta">显示全部活动 · 0 条</div>
+                            <div class="activity-feed" id="activityFeed" aria-live="polite">
+                                <div class="activity-empty">暂无活动记录</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="monitor-actions">
+                        <button type="button" class="btn btn-ghost" onclick="refreshMonitorPage()">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                            刷新数据
+                        </button>
+                        <button type="button" class="btn btn-ghost" onclick="requestResetMetrics()">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <polyline points="23 20 23 14 17 14"></polyline>
+                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10"></path>
+                                <path d="M3.51 15A9 9 0 0 0 18.36 18.36L23 14"></path>
+                            </svg>
+                            重置指标
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="commandPalette" onclick="handleCommandPaletteBackdrop(event)" role="dialog" aria-modal="true" aria-labelledby="commandPaletteTitle" aria-describedby="commandPaletteHint" aria-hidden="true">
+        <div class="command-palette" role="document" tabindex="-1">
+            <div class="command-palette-head">
+                <label class="sr-only" id="commandPaletteTitle" for="commandInput">快捷面板</label>
+                <div class="command-input-wrap">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <input type="text" id="commandInput" name="commandInput" autocomplete="off" inputmode="search" placeholder="搜索页面、动作或快捷命令…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="commandResults" aria-expanded="false">
+                </div>
+                <button type="button" class="modal-close" onclick="closeCommandPalette()" aria-label="关闭快捷面板">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="command-results-meta" id="commandResultsMeta">显示全部快捷命令</div>
+            <div class="command-results" id="commandResults" role="listbox" aria-label="快捷命令搜索结果"></div>
+            <div class="sr-only" id="commandResultStatus" aria-live="polite"></div>
+            <div class="command-footer" id="commandPaletteHint">Enter 执行 · ↑↓ 切换 · Home / End 快速定位 · Esc 关闭</div>
+        </div>
+    </div>
+
+    <!-- ========== Upload Modal ========== -->
+    <div class="modal-overlay" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle" aria-describedby="uploadModalHint" aria-hidden="true">
+        <div class="modal" role="document" tabindex="-1">
+            <div class="modal-header">
+                <h3 id="uploadModalTitle">上传知识文档</h3>
+                <button type="button" class="modal-close" onclick="hideUploadModal()" aria-label="关闭上传弹窗">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="sr-only" id="uploadModalHint">上传弹窗开启后可使用 Tab 在表单控件间切换，按 Escape 关闭。</p>
+                <div class="form-field">
+                    <label for="uploadMode">上传方式</label>
+                    <select id="uploadMode" name="uploadMode" onchange="toggleUploadMode()">
+                        <option value="file">文件上传</option>
+                        <option value="text">文本输入</option>
+                    </select>
+                </div>
+
+                <div id="fileSection">
+                    <div class="form-field">
+                        <button type="button" class="file-drop-zone" id="fileDropZone" aria-describedby="fileDropHint">
+                            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span class="file-drop-title">点击或拖拽文件到此区域</span>
+                            <span class="file-drop-meta" id="fileDropHint">支持 PDF、Word、TXT、Markdown 格式，最大 50MB</span>
+                        </button>
+                        <input type="file" id="fileInput" style="display:none" accept=".pdf,.doc,.docx,.txt,.md">
+                    </div>
+                </div>
+
+                <div id="textSection" style="display:none">
+                    <div class="form-field">
+                        <label for="uploadText">知识内容</label>
+                        <textarea id="uploadText" name="uploadText" rows="8" autocomplete="off" placeholder="输入知识文档内容…"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="uploadDocName">文档名称</label>
+                    <input type="text" id="uploadDocName" name="uploadDocName" autocomplete="off" placeholder="输入文档名称（可选，默认使用文件名）…">
+                </div>
+                <div class="form-field">
+                    <label for="uploadCategory">所属分类</label>
+                    <input type="text" id="uploadCategory" name="uploadCategory" autocomplete="off" placeholder="例如：产品说明、售后政策、技术文档…">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="hideUploadModal()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="doUpload()">确认上传</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalDescription" aria-hidden="true" onclick="handleConfirmBackdrop(event)">
+        <div class="modal modal-confirm" role="document" tabindex="-1">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">确认操作</h3>
+                <button type="button" class="modal-close" onclick="closeConfirmModal()" aria-label="关闭确认弹窗">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-copy" id="confirmModalDescription">确认执行当前操作？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeConfirmModal()">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmModalAction" onclick="runConfirmAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

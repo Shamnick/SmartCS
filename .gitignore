@@ -1,0 +1,10 @@
+target/
+.env
+.env.*
+*.local
+application-local.yml
+application-*.local.yml
+src/main/resources/application-local.yml
+src/main/resources/application-*.local.yml
+.idea/
+.vscode/
